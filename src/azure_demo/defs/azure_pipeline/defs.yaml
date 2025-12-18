@@ -1,0 +1,8 @@
+type: azure_demo.components.azure_data_pipeline.AzureDataPipeline
+
+attributes:
+  storage_account: "myazurestorage"
+  container_name: "customer-data"
+  demo_mode: true
+  input_path: "raw-data/transactions/"
+  output_path: "processed-data/analytics/"
