@@ -4,5 +4,5 @@ attributes:
   storage_account: "myazurestorage"
   container_name: "customer-data"
   demo_mode: true
-  input_path: "raw-data/transactions/"
+  input_path: "raw-data/new-transactions/"
   output_path: "processed-data/analytics/"
