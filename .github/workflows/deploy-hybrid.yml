@@ -40,16 +40,9 @@ jobs:
       - name: Initialize Dagster Cloud build session
         if: steps.prerun.outputs.result != 'skip'
         id: ci-init
-        uses: dagster-io/dagster-cloud-action/actions/utils/ci-init@v0.1
+        uses: dagster-io/dagster-cloud-action/actions/utils/ci-init@v1.12.6
         with:
           deployment: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'prod' }}
-
-      - name: Initialize build session
-        if: steps.prerun.outputs.result != 'skip'
-        id: ci-init-build
-        uses: dagster-io/dagster-cloud-action/actions/utils/ci-init@v0.1
-        with:
-          deployment: ${{ steps.ci-init.outputs.deployment }}
 
       - name: Set up Docker Buildx
         if: steps.prerun.outputs.result != 'skip'
@@ -79,26 +72,25 @@ jobs:
 
       - name: Update build session with Docker image
         if: steps.prerun.outputs.result != 'skip'
-        id: ci-set-build-output
-        uses: dagster-io/dagster-cloud-action/actions/utils/ci-set-build-output@v0.1
+        uses: dagster-io/dagster-cloud-action/actions/utils/dagster-cloud-cli@v1.12.6
         with:
-          location-name: azure-pipeline
-          image-tag: ${{ github.sha }}
+          command: "ci set-build-output --location-name=azure-pipeline --image-tag=${{ github.sha }}"
+        env:
+          DAGSTER_CLOUD_API_TOKEN: ${{ secrets.DAGSTER_CLOUD_API_TOKEN }}
 
       - name: Deploy to Dagster Cloud
         if: steps.prerun.outputs.result != 'skip'
-        uses: dagster-io/dagster-cloud-action/actions/utils/deploy@v0.1
+        uses: dagster-io/dagster-cloud-action/actions/utils/dagster-cloud-cli@v1.12.6
         with:
-          organization-id: ${{ secrets.DAGSTER_CLOUD_ORGANIZATION }}
-          deployment: ${{ steps.ci-init.outputs.deployment }}
+          command: "ci deploy --organization=${{ secrets.DAGSTER_CLOUD_ORGANIZATION }} --deployment=${{ steps.ci-init.outputs.deployment }}"
         env:
           DAGSTER_CLOUD_API_TOKEN: ${{ secrets.DAGSTER_CLOUD_API_TOKEN }}
 
       - name: Update PR comment
         if: steps.prerun.outputs.result != 'skip' && github.event_name == 'pull_request'
-        uses: dagster-io/dagster-cloud-action/actions/utils/pr-comment@v0.1
+        uses: dagster-io/dagster-cloud-action/actions/utils/dagster-cloud-cli@v1.12.6
         with:
-          deployment: ${{ steps.ci-init.outputs.deployment }}
+          command: "ci notify --deployment=${{ steps.ci-init.outputs.deployment }}"
         env:
           DAGSTER_CLOUD_API_TOKEN: ${{ secrets.DAGSTER_CLOUD_API_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
