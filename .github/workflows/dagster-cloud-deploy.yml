@@ -22,7 +22,7 @@ env:
   # Path to dagster_cloud.yaml relative to DAGSTER_PROJECT_DIR
   DAGSTER_CLOUD_YAML_PATH: "dagster_cloud.yaml"
   # The IMAGE_REGISTRY should match the 'registry:' in dagster_cloud.yaml
-  IMAGE_REGISTRY: "ericdagstercr123.azurecr.io"
+  IMAGE_REGISTRY: "ericdagstercr123.azurecr.io/azure-demo"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -78,7 +78,7 @@ jobs:
         if: steps.prerun.outputs.result != 'skip'
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.IMAGE_REGISTRY }}
+          registry: ericdagstercr123.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
@@ -89,7 +89,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.IMAGE_REGISTRY }}/azure-demo:${{ env.IMAGE_TAG }}-azure-pipeline
+          tags: ${{ env.IMAGE_REGISTRY }}:${{ env.IMAGE_TAG }}-azure-pipeline
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

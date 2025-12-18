@@ -4,7 +4,7 @@ locations:
       package_name: azure_demo.definitions
     build:
       directory: .
-      registry: ericdagstercr123.azurecr.io
+      registry: ericdagstercr123.azurecr.io/azure-demo
     container_context:
       k8s:
         env_vars:
