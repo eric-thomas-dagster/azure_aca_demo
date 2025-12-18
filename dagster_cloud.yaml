@@ -1,10 +1,10 @@
 locations:
-  - location_name: azure-pipeline
-    code_source:
+  - code_location:
+      location_name: azure-pipeline
       package_name: azure_demo.definitions
     build:
       directory: .
-      registry: ${IMAGE_REGISTRY}
+      registry: ericdagstercr123.azurecr.io
     container_context:
       k8s:
         env_vars:
