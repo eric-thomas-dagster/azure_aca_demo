@@ -1,6 +1,6 @@
 locations:
-  - code_location:
-      location_name: azure-pipeline
+  - location_name: azure-pipeline
+    code_source:
       package_name: azure_demo.definitions
     build:
       directory: .
