@@ -1,5 +1,7 @@
 # Azure Demo - Dagster Hybrid Deployment
 
+[![Dagster Cloud](https://img.shields.io/badge/Dagster%20Cloud-Hybrid-blue)](https://dagster.io/cloud)
+
 A demonstration Dagster project showcasing a data pipeline for Azure environments with hybrid deployment using Azure Container Registry (ACR).
 
 ## Project Overview
