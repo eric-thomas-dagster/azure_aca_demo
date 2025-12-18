@@ -98,17 +98,31 @@ Open http://localhost:3000 in your browser to see the project.
 
 The GitHub Actions workflow (`.github/workflows/deploy-hybrid.yml`) will:
 
-1. Build a Docker image with your Dagster code
-2. Push the image to Azure Container Registry
-3. Deploy to Dagster+ Hybrid using the ACR image
+1. Initialize a Dagster Cloud build session
+2. Validate the `dagster_cloud.yaml` configuration
+3. Build a Docker image with your Dagster code
+4. Push the image to Azure Container Registry
+5. Update the build session with the Docker image tag
+6. Deploy to Dagster+ Hybrid using the ACR image
 
 Deployment is triggered on:
-- Push to `main` branch
-- Pull requests (for validation)
+- Push to `main`/`master` branch (deploys to `prod`)
+- Pull requests (creates branch deployments for testing)
 
-### Configuration
+### Configuration Files
 
-To switch from demo mode to production mode:
+**dagster_cloud.yaml** - Defines the code location for Dagster+:
+```yaml
+locations:
+  - location_name: azure-pipeline
+    code_source:
+      package_name: azure_demo.definitions
+    build:
+      directory: .
+      registry: ${IMAGE_REGISTRY}
+```
+
+**Component Configuration** - To switch from demo mode to production mode:
 
 Edit `src/azure_demo/defs/azure_pipeline/defs.yaml`:
 

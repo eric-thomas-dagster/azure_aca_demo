@@ -4,58 +4,101 @@ on:
   push:
     branches:
       - main
+      - master
   pull_request:
+    types: [opened, synchronize, reopened, closed]
 
 env:
   DAGSTER_CLOUD_ORGANIZATION: ${{ secrets.DAGSTER_CLOUD_ORGANIZATION }}
-  DAGSTER_CLOUD_API_TOKEN: ${{ secrets.DAGSTER_CLOUD_API_TOKEN }}
-  DAGSTER_CLOUD_DEPLOYMENT: prod
-  REGISTRY_NAME: ${{ secrets.ACR_REGISTRY_NAME }}
-  IMAGE_NAME: azure-demo
+  IMAGE_REGISTRY: ${{ secrets.ACR_REGISTRY_NAME }}.azurecr.io
 
 jobs:
-  build-and-deploy:
+  dagster-cloud-deploy:
     runs-on: ubuntu-latest
+    name: Deploy to Dagster+ Hybrid
 
     steps:
+      - name: Pre-run check
+        id: prerun
+        run: echo "result=${{ github.event_name == 'pull_request' && github.event.action == 'closed' && 'skip' || 'continue' }}" >> $GITHUB_OUTPUT
+
       - name: Checkout code
+        if: steps.prerun.outputs.result != 'skip'
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref }}
+
+      - name: Validate dagster_cloud.yaml
+        if: steps.prerun.outputs.result != 'skip'
+        run: |
+          if [ ! -f "dagster_cloud.yaml" ]; then
+            echo "Error: dagster_cloud.yaml not found"
+            exit 1
+          fi
+          cat dagster_cloud.yaml
+
+      - name: Initialize Dagster Cloud build session
+        if: steps.prerun.outputs.result != 'skip'
+        id: ci-init
+        uses: dagster-io/dagster-cloud-action/actions/utils/ci-init@v0.1
+        with:
+          deployment: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'prod' }}
+
+      - name: Initialize build session
+        if: steps.prerun.outputs.result != 'skip'
+        id: ci-init-build
+        uses: dagster-io/dagster-cloud-action/actions/utils/ci-init@v0.1
+        with:
+          deployment: ${{ steps.ci-init.outputs.deployment }}
 
       - name: Set up Docker Buildx
+        if: steps.prerun.outputs.result != 'skip'
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Azure Container Registry
+        if: steps.prerun.outputs.result != 'skip'
         uses: azure/docker-login@v1
         with:
           login-server: ${{ secrets.ACR_REGISTRY_NAME }}.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Generate deployment metadata
-        id: deployment-metadata
-        run: |
-          echo "image_tag=sha-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "deployment_name=${GITHUB_REF_NAME}-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
-
       - name: Build and push Docker image to ACR
+        if: steps.prerun.outputs.result != 'skip'
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: |
-            ${{ secrets.ACR_REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ steps.deployment-metadata.outputs.image_tag }}
-            ${{ secrets.ACR_REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+            ${{ secrets.ACR_REGISTRY_NAME }}.azurecr.io/azure-demo:${{ github.sha }}
+            ${{ secrets.ACR_REGISTRY_NAME }}.azurecr.io/azure-demo:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          labels: |
+            deployment=${{ steps.ci-init.outputs.deployment }}
 
-      - name: Deploy to Dagster+ Hybrid
-        uses: dagster-io/dagster-cloud-action/actions/deploy@v0.1
+      - name: Update build session with Docker image
+        if: steps.prerun.outputs.result != 'skip'
+        id: ci-set-build-output
+        uses: dagster-io/dagster-cloud-action/actions/utils/ci-set-build-output@v0.1
+        with:
+          location-name: azure-pipeline
+          image-tag: ${{ github.sha }}
+
+      - name: Deploy to Dagster Cloud
+        if: steps.prerun.outputs.result != 'skip'
+        uses: dagster-io/dagster-cloud-action/actions/utils/deploy@v0.1
         with:
           organization-id: ${{ secrets.DAGSTER_CLOUD_ORGANIZATION }}
-          deployment: ${{ env.DAGSTER_CLOUD_DEPLOYMENT }}
-          location-name: azure-pipeline
-          image-tag: ${{ steps.deployment-metadata.outputs.image_tag }}
-          registry: ${{ secrets.ACR_REGISTRY_NAME }}.azurecr.io
-          code-location-image: ${{ secrets.ACR_REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ steps.deployment-metadata.outputs.image_tag }}
+          deployment: ${{ steps.ci-init.outputs.deployment }}
         env:
           DAGSTER_CLOUD_API_TOKEN: ${{ secrets.DAGSTER_CLOUD_API_TOKEN }}
+
+      - name: Update PR comment
+        if: steps.prerun.outputs.result != 'skip' && github.event_name == 'pull_request'
+        uses: dagster-io/dagster-cloud-action/actions/utils/pr-comment@v0.1
+        with:
+          deployment: ${{ steps.ci-init.outputs.deployment }}
+        env:
+          DAGSTER_CLOUD_API_TOKEN: ${{ secrets.DAGSTER_CLOUD_API_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

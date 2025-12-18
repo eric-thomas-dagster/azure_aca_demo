@@ -1,0 +1,12 @@
+locations:
+  - location_name: azure-pipeline
+    code_source:
+      package_name: azure_demo.definitions
+    build:
+      directory: .
+      registry: ${IMAGE_REGISTRY}
+    container_context:
+      k8s:
+        env_vars:
+          - AZURE_STORAGE_ACCOUNT
+          - AZURE_STORAGE_KEY
