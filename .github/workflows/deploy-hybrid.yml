@@ -87,12 +87,3 @@ jobs:
           command: "ci deploy --organization=${{ secrets.DAGSTER_CLOUD_ORGANIZATION }} --deployment=${{ steps.ci-init.outputs.deployment }}"
         env:
           DAGSTER_CLOUD_API_TOKEN: ${{ secrets.DAGSTER_CLOUD_API_TOKEN }}
-
-      - name: Update PR comment
-        if: steps.prerun.outputs.result != 'skip' && github.event_name == 'pull_request'
-        uses: dagster-io/dagster-cloud-action/actions/utils/dagster-cloud-cli@v1.12.6
-        with:
-          command: "ci notify --deployment=${{ steps.ci-init.outputs.deployment }}"
-        env:
-          DAGSTER_CLOUD_API_TOKEN: ${{ secrets.DAGSTER_CLOUD_API_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
