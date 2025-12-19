@@ -3,14 +3,14 @@ name = "azure_demo"
 requires-python = ">=3.10,<3.14"
 version = "0.1.0"
 dependencies = [
-    "dagster==1.12.6",
+    "dagster-cloud",
     "dagster-azure>=0.28.6",
 ]
 
 [dependency-groups]
 dev = [
     "dagster-webserver",
-    "dagster-dg-cli",
+    "dagster-cloud-cli",
 ]
 
 [build-system]
