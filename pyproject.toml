@@ -3,7 +3,8 @@ name = "azure_demo"
 requires-python = ">=3.10,<3.14"
 version = "0.1.0"
 dependencies = [
-    "dagster-cloud",
+    "dagster==1.12.6",
+    "dagster-cloud==1.12.6",
     "dagster-azure>=0.28.6",
 ]
 
