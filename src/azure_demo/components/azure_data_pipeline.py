@@ -21,10 +21,9 @@ class AzureDataPipeline(dg.Component, dg.Model, dg.Resolvable):
             kinds={"azure", "blob-storage", "ingestion"},
             description="Ingests raw data from Azure Blob Storage",
         )
-        def ingest_raw_data(context: dg.AssetExecutionContext):
+        def ingest_raw_data():
             """Ingest raw customer transaction data from Azure Blob Storage."""
-            elt_repo_branch = dg.EnvVar("ELT_REPO_BRANCH").get_value()
-            context.log.info(f"ELT_REPO_BRANCH={elt_repo_branch}")
+            pass
 
         @dg.asset(
             kinds={"python", "data-cleaning"},
