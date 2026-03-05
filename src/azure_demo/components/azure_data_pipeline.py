@@ -1,3 +1,5 @@
+import os
+
 import dagster as dg
 from typing import Optional
 
@@ -21,9 +23,10 @@ class AzureDataPipeline(dg.Component, dg.Model, dg.Resolvable):
             kinds={"azure", "blob-storage", "ingestion"},
             description="Ingests raw data from Azure Blob Storage",
         )
-        def ingest_raw_data():
+        def ingest_raw_data(context: dg.AssetExecutionContext):
             """Ingest raw customer transaction data from Azure Blob Storage."""
-            pass
+            elt_repo_branch = os.environ.get("ELT_REPO_BRANCH", "NOT SET")
+            context.log.info(f"ELT_REPO_BRANCH={elt_repo_branch}")
 
         @dg.asset(
             kinds={"python", "data-cleaning"},
