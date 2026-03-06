@@ -4,14 +4,6 @@ import dagster as dg
 from typing import Optional
 
 
-class EnvDebugResource(dg.ConfigurableResource):
-    def setup_for_execution(self, context):
-        print(f"Resource initializing in container: {os.environ.get('HOSTNAME', 'unknown')}")
-        print(f"ELT_REPO_BRANCH at resource init: {os.environ.get('ELT_REPO_BRANCH', 'NOT SET')}")
-        print(f"All env var keys at resource init: {sorted(os.environ.keys())}")
-        return self
-
-
 class AzureDataPipeline(dg.Component, dg.Model, dg.Resolvable):
     """Azure Data Pipeline Component.
 
@@ -31,7 +23,7 @@ class AzureDataPipeline(dg.Component, dg.Model, dg.Resolvable):
             kinds={"azure", "blob-storage", "ingestion"},
             description="Ingests raw data from Azure Blob Storage",
         )
-        def ingest_raw_data(context: dg.AssetExecutionContext, env_debug: EnvDebugResource):
+        def ingest_raw_data(context: dg.AssetExecutionContext):
             """Ingest raw customer transaction data from Azure Blob Storage."""
             context.log.info(f"Asset running in container: {os.environ.get('HOSTNAME', 'unknown')}")
             context.log.info(f"ELT_REPO_BRANCH={os.environ.get('ELT_REPO_BRANCH', 'NOT SET')}")
