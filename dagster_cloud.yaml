@@ -10,4 +10,4 @@ locations:
         env_vars:
           - AZURE_STORAGE_ACCOUNT
           - AZURE_STORAGE_KEY
-          - ELT_REPO_BRANCH
+          - ELT_REPO_BRANCH=mains
