@@ -1,11 +1,8 @@
 from pathlib import Path
-import logging
 import os
 
 import dagster as dg
 from dagster import definitions, load_from_defs_folder
-
-_logger = logging.getLogger("dagster")
 
 
 class EnvDebugResource(dg.ConfigurableResource):
