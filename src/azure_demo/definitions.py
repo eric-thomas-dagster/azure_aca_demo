@@ -9,25 +9,22 @@ _logger = logging.getLogger("dagster")
 
 
 class EnvDebugResource(dg.ConfigurableResource):
-    # dg.EnvVar() is resolved on the code server at ExecutionPlanSnapshot time.
-    # This requires ELT_REPO_BRANCH to be set as a real container env var on the
-    # code server — which happens when the ACA launcher includes it in cloud_context_env
-    # (requires UserCodeDeploymentType.ECS so Dagster Cloud sends user-defined
-    # deployment env vars to the launcher). Reload the code location after setting
-    # the env var in Dagster+ UI to restart the code server with the updated env.
-    branch: str = dg.EnvVar("ELT_REPO_BRANCH")
+    # NOTE: dg.EnvVar() as a field default is resolved at ExecutionPlanSnapshot time
+    # on the code server — it requires the var to be a real container env var at
+    # startup, not just a Dagster+ UI deployment env var (those only reach run workers).
+    # We read from os.environ inside methods instead, which runs in the run worker
+    # where all deployment-level env vars are available.
 
     def setup_for_execution(self, _context):
         _logger.info(f"Resource initializing in container: {os.environ.get('HOSTNAME', 'unknown')}")
-        _logger.info(f"ELT_REPO_BRANCH at resource init: {self.branch}")
+        _logger.info(f"ELT_REPO_BRANCH at resource init: {os.environ.get('ELT_REPO_BRANCH', 'NOT SET')}")
         return self
 
 
 @dg.asset
 def env_check(context: dg.AssetExecutionContext, env_debug: EnvDebugResource):
     context.log.info(f"Asset running in container: {os.environ.get('HOSTNAME', 'unknown')}")
-    context.log.info(f"ELT_REPO_BRANCH via resource: {env_debug.branch}")
-    context.log.info(f"ELT_REPO_BRANCH via os.environ: {os.getenv('ELT_REPO_BRANCH', 'NOT SET')}")
+    context.log.info(f"ELT_REPO_BRANCH in run worker: {os.getenv('ELT_REPO_BRANCH', 'NOT SET')}")
 
 
 @definitions
