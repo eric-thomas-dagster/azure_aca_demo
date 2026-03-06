@@ -1,8 +1,11 @@
 from pathlib import Path
+import logging
 import os
 
 import dagster as dg
 from dagster import definitions, load_from_defs_folder
+
+_logger = logging.getLogger("dagster")
 
 
 class EnvDebugResource(dg.ConfigurableResource):
@@ -10,18 +13,18 @@ class EnvDebugResource(dg.ConfigurableResource):
     # multiprocess executor subprocesses where os.environ may not be propagated.
     branch: str = dg.EnvVar("ELT_REPO_BRANCH")
 
-    def setup_for_execution(self, context):
-        print(f"Resource initializing in container: {os.environ.get('HOSTNAME', 'unknown')}")
-        print(f"ELT_REPO_BRANCH via os.environ at resource init: {os.environ.get('ELT_REPO_BRANCH', 'NOT SET')}")
-        print(f"ELT_REPO_BRANCH via dg.EnvVar at resource init: {self.branch}")
+    def setup_for_execution(self, _context):
+        _logger.info(f"Resource initializing in container: {os.environ.get('HOSTNAME', 'unknown')}")
+        _logger.info(f"ELT_REPO_BRANCH via os.environ at resource init: {os.environ.get('ELT_REPO_BRANCH', 'NOT SET')}")
+        _logger.info(f"ELT_REPO_BRANCH via dg.EnvVar at resource init: {self.branch}")
         return self
 
 
 @dg.asset
-def env_check(env_debug: EnvDebugResource):
-    print(f"Asset running in container: {os.environ.get('HOSTNAME', 'unknown')}")
-    print(f"ELT_REPO_BRANCH via os.environ in asset: {os.getenv('ELT_REPO_BRANCH', 'NOT SET')}")
-    print(f"ELT_REPO_BRANCH via resource in asset: {env_debug.branch}")
+def env_check(context: dg.AssetExecutionContext, env_debug: EnvDebugResource):
+    context.log.info(f"Asset running in container: {os.environ.get('HOSTNAME', 'unknown')}")
+    context.log.info(f"ELT_REPO_BRANCH via os.environ in asset: {os.getenv('ELT_REPO_BRANCH', 'NOT SET')}")
+    context.log.info(f"ELT_REPO_BRANCH via resource in asset: {env_debug.branch}")
 
 
 @definitions
