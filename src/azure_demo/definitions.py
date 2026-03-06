@@ -6,19 +6,16 @@ from dagster import definitions, load_from_defs_folder
 
 
 class EnvDebugResource(dg.ConfigurableResource):
-    branch: str = dg.EnvVar("ELT_REPO_BRANCH")
-
     def setup_for_execution(self, context):
         context.log.info(f"Resource initializing in container: {os.environ.get('HOSTNAME', 'unknown')}")
-        context.log.info(f"ELT_REPO_BRANCH via dg.EnvVar: {self.branch}")
+        context.log.info(f"ELT_REPO_BRANCH via resource: {os.environ.get('ELT_REPO_BRANCH', 'NOT SET')}")
         return self
 
 
 @dg.asset
 def env_check(context: dg.AssetExecutionContext, env_debug: EnvDebugResource):
     context.log.info(f"Asset running in container: {os.environ.get('HOSTNAME', 'unknown')}")
-    context.log.info(f"ELT_REPO_BRANCH via resource field: {env_debug.branch}")
-    context.log.info(f"ELT_REPO_BRANCH via os.environ: {os.getenv('ELT_REPO_BRANCH', 'NOT SET')}")
+    context.log.info(f"ELT_REPO_BRANCH in run worker: {os.getenv('ELT_REPO_BRANCH', 'NOT SET')}")
 
 
 @definitions
