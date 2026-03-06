@@ -15,9 +15,9 @@ class EnvDebugResource(dg.ConfigurableResource):
     # We read from os.environ inside methods instead, which runs in the run worker
     # where all deployment-level env vars are available.
 
-    def setup_for_execution(self, _context):
-        _logger.info(f"Resource initializing in container: {os.environ.get('HOSTNAME', 'unknown')}")
-        _logger.info(f"ELT_REPO_BRANCH at resource init: {os.environ.get('ELT_REPO_BRANCH', 'NOT SET')}")
+    def setup_for_execution(self, context):
+        context.log.info(f"Resource initializing in container: {os.environ.get('HOSTNAME', 'unknown')}")
+        context.log.info(f"ELT_REPO_BRANCH at resource init: {os.environ.get('ELT_REPO_BRANCH', 'NOT SET')}")
         return self
 
 
