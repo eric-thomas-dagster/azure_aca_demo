@@ -8,8 +8,14 @@ locations:
     build:
       directory: .
       registry: ericdagstercr123.azurecr.io/azure-demo
+    # container_context.aca is rejected by Dagster+'s server-side schema until
+    # the ACA PRs land and Dagster+ adds `aca` to its container_context Selector.
+    # Leaving this as `k8s:` — our AcaUserCodeLauncher ignores non-`aca` blocks
+    # and the env vars flow in via Dagster+ Deployment Settings → Environment
+    # Variables instead (DAGSTER_INJECT_ENV_VARS_FROM_INSTANCE). Swap to `aca:`
+    # after the PRs merge.
     container_context:
-      aca:
+      k8s:
         env_vars:
           - AZURE_STORAGE_ACCOUNT
           - AZURE_STORAGE_KEY
