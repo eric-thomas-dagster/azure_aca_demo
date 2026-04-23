@@ -13,6 +13,12 @@ COPY src/ ./src/
 # Install dependencies
 RUN uv sync --frozen
 
+# Put the uv-managed venv on PATH so `dagster` is resolvable directly.
+# The code server still launches via `uv run dagster ...` below; this only
+# matters for run workers where the launcher invokes `dagster` without a
+# wrapper (ACA Jobs, K8s Jobs, ECS tasks).
+ENV PATH="/app/.venv/bin:${PATH}"
+
 # Set the entrypoint for Dagster
 ENV DAGSTER_HOME=/app
 
