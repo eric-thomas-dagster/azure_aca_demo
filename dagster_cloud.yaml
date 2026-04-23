@@ -1,12 +1,15 @@
 locations:
   - location_name: azure-pipeline
+    # Route this location to the ACA agent (which subscribes to `aca-queue`
+    # via DAGSTER_AGENT_QUEUES). Other agents on the deployment ignore it.
+    agent_queue: aca-queue
     code_source:
       package_name: azure_demo.definitions
     build:
       directory: .
       registry: ericdagstercr123.azurecr.io/azure-demo
     container_context:
-      k8s:
+      aca:
         env_vars:
           - AZURE_STORAGE_ACCOUNT
           - AZURE_STORAGE_KEY
